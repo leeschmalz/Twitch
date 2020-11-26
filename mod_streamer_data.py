@@ -149,6 +149,10 @@ def get_stream_schedule(df, name, start_date, end_date, plot=True, chunk_after_m
         
     output: either a plot of stream schedules depending on plot parameter
     '''
+
+    start_date = start_date + ' 00:00:00'
+    end_date = end_date + ' 00:00:00'
+
     if plot == True and chunk_after_midnight == False:
         raise ValueError('chunk_after_midnight must be True to build desired plotly output.')
 
@@ -215,7 +219,25 @@ def get_stream_schedule(df, name, start_date, end_date, plot=True, chunk_after_m
                         range_x=[datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S'),datetime.strptime(start_date, '%Y-%m-%d %H:%M:%S')+timedelta(hours=24)])
         #fig.update_layout(xaxis=dict(tickvals= []))
         
-        return fig.show()
+        return fig
     
     else:
         return gantt
+
+def query_database(query, db, user, password):
+    db = pymysql.connect(db, user, password)
+    cursor = db.cursor()
+
+    sql = '''use Streams'''
+    cursor.execute(sql)
+
+    #cursor.execute(query)
+
+    df = pd.read_sql(query, db, index_col='ID')
+    
+    #always run this after use
+    db.commit()
+    cursor.close()
+    db.close()
+
+    return df
